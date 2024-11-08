@@ -33,11 +33,12 @@ The stars were inspired by my **quiz5**:
 - I got a high score for that quiz.
 - This part of the tutorial also talks about using buttons to generate animations or interactions.
 ![1](images/1.png)
-# 2.4 A Short Technical Note
+### 2.4 A Short Technical Note
 
 ## Commit 1: Add a Dark Mode Button
 I created a sun-to-moon day/night transition effect to animate the scene.
 
+### Main Changes:
 - **Gradual Change of Sky and Water**: The code animates the gradual darkening by using the `lerpColor()` function. As the sun sinks, the color of the sky and water gradually changes to dark blue.
 - **Sun to Moon Transition**: The code controls the change in the position and color of the sun through interpolation functions and adds the moon object to the scene at the end of the animation.
 - **Fading of Clouds**: During the course of the night, the clouds in the sky fade out. The code accomplishes this effect by changing the transparency of the clouds (`setAlpha()`).
@@ -60,7 +61,7 @@ In this version (commit 2), I've introduced a layering pattern for the moon's ap
 ## Commit 3: More Interactive Buttons and Star Effects
 **Overview**: Added more interactive buttons, star drawing and movement effects, and a reset function.
 
-### Major Changes:
+### Main Changes:
 1. **Star Drawing and Movement**:
    - Added `drawStars()` and `startStarMovement()` functions.
 
