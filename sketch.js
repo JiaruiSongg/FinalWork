@@ -1,156 +1,218 @@
 let shapes = [];
+let sunElement = null; // Reference for the sun
+let moonElement = null; // Reference for the moon
+let animationStarted = false; // Prevents multiple animations from starting at once
 
 // setup() function
 function setup() {
   createCanvas(800, 600);
-  loop(); 
-  
-  //create the sky and water
+  noLoop(); // Initial rendering will not loop until animation is triggered
+
+  // Create the sky gradient
   for (let y = 0; y < height / 2; y += 10) {
     let skyColor = lerpColor(color(25, 60, 150), color(255, 190, 120), y / (height / 2));
-    shapes.push(new BauhausRect(0, y, width, 10, skyColor)); 
+    shapes.push(new BauhausRect(0, y, width, 10, skyColor)); // Sky layers
   }
 
- //create the water
+  // Create the water gradient
   for (let y = height / 2; y < height; y += 10) {
     let waterColor = lerpColor(color(255, 150, 100), color(0, 100, 150), (y - height / 2) / (height / 2));
-    shapes.push(new BauhausRect(0, y, width, 10, waterColor)); 
+    shapes.push(new BauhausRect(0, y, width, 10, waterColor)); // Water layers
   }
 
-  //create the building
-  shapes.push(new BauhausRect(220, 80, 30, 100, color(0, 0, 0))); //left part
-  shapes.push(new BauhausRect(210, 120, 50, 80, color(20, 10, 60))); // middle part
-  shapes.push(new BauhausRect(190, 180, 300, 120, color(50, 30, 80))); // right part
+  // Create the building
+  shapes.push(new BauhausRect(220, 80, 30, 100, color(0, 0, 0))); // Left part
+  shapes.push(new BauhausRect(210, 120, 50, 80, color(20, 10, 60))); // Middle part
+  shapes.push(new BauhausRect(190, 180, 300, 120, color(50, 30, 80))); // Right part
 
-  // Add the reflection of the building on the water
-  shapes.push(new BauhausRect(220, 300, 80, 200, color(0, 0, 0, 80))); // top reflection, transparent black
-  shapes.push(new BauhausRect(230, 450, 50, 80, color(20, 10, 60, 80))); // middle reflection, transparent purple
-  shapes.push(new BauhausRect(250, 500, 30, 60, color(150, 30, 80, 80))); // bottom reflection, transparent red
-
-  // Add the windows of the building
-  for (let i = 0; i < 20; i++) {
-    shapes.push(new BauhausLine(random(width), random(height / 2, height), random(50, 150), 0, color(255, 100, 50, 100))); 
-  }
-
-  // Add the sun
-  shapes.push(new BauhausCircle(600, 100, 80, color(255, 200, 50, 180))); 
+  // Add building reflections
+  shapes.push(new BauhausRect(220, 300, 80, 200, color(0, 0, 0, 80))); // Top reflection
+  shapes.push(new BauhausRect(230, 450, 50, 80, color(20, 10, 60, 80))); // Middle reflection
+  shapes.push(new BauhausRect(250, 500, 30, 60, color(150, 30, 80, 80))); // Bottom reflection
 
   // Add the clouds
-  shapes.push(new BauhausCloud(100, 70, 90, 200)); // The first cloud
-  shapes.push(new BauhausCloud(300, 50, 120, 230)); // The second cloud
-  shapes.push(new BauhausCloud(500, 100, 100, 180)); // The third cloud
-  shapes.push(new BauhausCloud(650, 80, 130, 200)); // The fourth cloud
-  shapes.push(new BauhausCloud(750, 120, 85, 220)); // The fifth cloud
+  shapes.push(new BauhausCloud(100, 70, 90, 200));
+  shapes.push(new BauhausCloud(300, 50, 120, 230));
+  shapes.push(new BauhausCloud(500, 100, 100, 180));
+  shapes.push(new BauhausCloud(650, 80, 130, 200));
+  shapes.push(new BauhausCloud(750, 120, 85, 220));
+
+  // Add the sun
+  sunElement = new BauhausCircle(600, 100, 80, color(255, 200, 50, 180)); // Sun with initial color
+  shapes.push(sunElement);
+
+  // Create Dark Mode Button
+  let darkModeButton = createButton("Dark Mode");
+  darkModeButton.position(10, 620); // Position the button below the canvas
+  darkModeButton.mousePressed(startDarkModeAnimation); // Attach the animation function
 }
 
 // draw() function
 function draw() {
-  background(255);
-  
-  // Draw all shapes
+  background(255); // Set white background
   for (let shape of shapes) {
     shape.draw();
     if (shape instanceof BauhausCloud) {
-      shape.move(); // Move the clouds
+      shape.move(); // Clouds move each frame
     }
   }
 }
 
-// BauhausShape class
+// Function to start dark mode animation
+function startDarkModeAnimation() {
+  if (animationStarted) return; // Prevents multiple triggers
+  animationStarted = true;
+
+  let startTime = millis(); // Start time for animation
+  let duration = 5000; // Animation duration (5 seconds)
+
+  function animate() {
+    let elapsedTime = millis() - startTime;
+    let progress = constrain(elapsedTime / duration, 0, 1); // Progress from 0 to 1
+
+    // Gradually darken the sky and water based on original color
+    for (let i = 0; i < height / 2 / 10; i++) {
+      let originalColor = shapes[i].color;
+      let darkColor = lerpColor(originalColor, color(0, 0, 50), progress); // Darken sky gradually
+      shapes[i].color = darkColor;
+    }
+
+    for (let i = height / 2 / 10; i < height / 10; i++) {
+      let originalColor = shapes[i].color;
+      let darkColor = lerpColor(originalColor, color(30, 30, 80), progress); // Darken reflections gradually
+      shapes[i].color = darkColor;
+    }
+
+    // Move the sun and gradually make it disappear
+    sunElement.x += (200 - sunElement.x) * progress; // Sun moves to the right
+    sunElement.y += (500 - sunElement.y) * progress; // Sun moves down
+    sunElement.color = lerpColor(color(255, 200, 50, 180), color(0, 0, 0, 0), progress); // Sun fades out
+
+    // Introduce the moon when the sun is fully gone
+    if (progress === 1 && !moonElement) {
+      moonElement = new BauhausCircle(600, 100, 60, color(255)); // Moon appears
+      shapes.push(moonElement);
+    }
+
+    // Gradually fade out clouds
+    for (let shape of shapes) {
+      if (shape instanceof BauhausCloud) {
+        shape.color.setAlpha(255 * (1 - progress)); // Clouds fade out
+      }
+    }
+
+    if (progress < 1) {
+      requestAnimationFrame(animate); // Continue animation
+    } else {
+      animationStarted = false; // Reset flag after animation ends
+    }
+    draw(); // Redraw the canvas each frame
+  }
+
+  animate(); // Start the animation
+}
+
+// Base class representing a generic Bauhaus shape
 class BauhausShape {
   constructor(x, y, color) {
-    this.x = x;
-    this.y = y;
-    this.color = color;
+    this.x = x;      // X-coordinate of the shape
+    this.y = y;      // Y-coordinate of the shape
+    this.color = color;  // Color of the shape
   }
 }
 
-// BauhausRect class
+// Class representing a rectangle shape in Bauhaus style
 class BauhausRect extends BauhausShape {
   constructor(x, y, width, height, color) {
     super(x, y, color);
-    this.width = width;
-    this.height = height;
+    this.width = width;    // Width of the rectangle
+    this.height = height;  // Height of the rectangle
   }
 
+  // Method to draw the rectangle
   draw() {
-    fill(this.color);
-    noStroke();
-    rect(this.x, this.y, this.width, this.height);
+    fill(this.color);  // Set the fill color
+    noStroke();        // No border for the rectangle
+    rect(this.x, this.y, this.width, this.height); // Draw the rectangle
   }
 }
 
-// BauhausCircle class
+// Class representing a circle shape in Bauhaus style
 class BauhausCircle extends BauhausShape {
   constructor(x, y, size, color) {
     super(x, y, color);
-    this.size = size;
+    this.size = size;  // Diameter of the circle
   }
-// Draw the circle
+
+  // Method to draw the circle
   draw() {
-    fill(this.color);
-    noStroke();
-    ellipse(this.x, this.y, this.size);
+    fill(this.color);  // Set the fill color
+    noStroke();        // No border for the circle
+    ellipse(this.x, this.y, this.size); // Draw the circle
   }
 }
 
-// BauhausLine class
+// Class representing a line in Bauhaus style
 class BauhausLine {
   constructor(x, y, length, angle, color) {
-    this.x = x;
-    this.y = y;
-    this.length = length;
-    this.angle = angle;
-    this.color = color;
+    this.x = x;            // X-coordinate of the starting point of the line
+    this.y = y;            // Y-coordinate of the starting point of the line
+    this.length = length;  // Length of the line
+    this.angle = angle;    // Angle of rotation for the line
+    this.color = color;    // Color of the line
   }
-// Draw the line
+
+  // Method to draw the line
   draw() {
-    stroke(this.color);
-    strokeWeight(2);
-    push();
-    translate(this.x, this.y);
-    rotate(radians(this.angle));
-    line(0, 0, this.length, 0);
-    pop();
+    stroke(this.color);    // Set the line color
+    strokeWeight(2);       // Set the thickness of the line
+    push();                // Save the current state of the canvas
+    translate(this.x, this.y); // Move the origin to the line's starting point
+    rotate(radians(this.angle)); // Rotate the line by the specified angle
+    line(0, 0, this.length, 0);  // Draw the line from origin to the specified length
+    pop();                 // Restore the original state of the canvas
   }
 }
 
-// Cloud class，Use multiple circles to form clouds and add motion effects
+// Class representing a cloud shape in Bauhaus style
 class BauhausCloud extends BauhausShape {
   constructor(x, y, size, alpha) {
-    super(x, y, color(255, 255, 255, alpha)); 
-    this.size = size; // The size of the cloud
-    this.speedX = random(0.2, 1); // The random speed of the cloud on the x-axis (move left and right)
-    this.speedY = random(-0.2, 0.2); // The random speed of the cloud on the y-axis (move up and down)
+    super(x, y, color(255, 255, 255, alpha));
+    this.size = size;            // Size of the cloud
+    this.speedX = random(0.2, 1);  // Horizontal movement speed
+    this.speedY = random(-0.2, 0.2); // Vertical movement speed
   }
 
-  // Draw the cloud
+  // Method to draw the cloud
   draw() {
-    noStroke();
-    fill(this.color);
+    noStroke();       // No border for the cloud
+    fill(this.color); // Set the fill color for the cloud
 
-    // Draw the cloud with multiple ellipses
-    ellipse(this.x, this.y, this.size, this.size * 0.5); 
-    ellipse(this.x - this.size * 0.4, this.y + this.size * 0.2, this.size * 0.6, this.size * 0.4); // The left ellipse
-    ellipse(this.x + this.size * 0.4, this.y + this.size * 0.2, this.size * 0.6, this.size * 0.4); // The right ellipse
-    ellipse(this.x - this.size * 0.2, this.y - this.size * 0.2, this.size * 0.5, this.size * 0.3); // The top ellipse
-    ellipse(this.x + this.size * 0.2, this.y - this.size * 0.2, this.size * 0.5, this.size * 0.3); // The bottom ellipse
+    // Draw multiple ellipses to form a cloud-like shape
+    ellipse(this.x, this.y, this.size, this.size * 0.5);
+    ellipse(this.x - this.size * 0.4, this.y + this.size * 0.2, this.size * 0.6, this.size * 0.4);
+    ellipse(this.x + this.size * 0.4, this.y + this.size * 0.2, this.size * 0.6, this.size * 0.4);
+    ellipse(this.x - this.size * 0.2, this.y - this.size * 0.2, this.size * 0.5, this.size * 0.3);
+    ellipse(this.x + this.size * 0.2, this.y - this.size * 0.2, this.size * 0.5, this.size * 0.3);
   }
 
-  // Move the cloud
+  // Method to move the cloud
   move() {
-    this.x += this.speedX;
-    this.y += this.speedY;
+    this.x += this.speedX; // Update X-coordinate based on horizontal speed
+    this.y += this.speedY; // Update Y-coordinate based on vertical speed
 
-    // If the cloud moves out of the left edge of the canvas, reset its position to the right edge
+    // Wrap around the canvas horizontally
     if (this.x > width + this.size) {
       this.x = -this.size;
+    } else if (this.x < -this.size) {
+      this.x = width + this.size;
     }
-    // If the cloud moves out of the top or bottom edge of the canvas, reverse its moving direction
-    if (this.y > height / 2 || this.y < 0) {
-      this.speedY *= -1;
+
+    // Wrap around the canvas vertically
+    if (this.y > height + this.size * 0.5) {
+      this.y = -this.size * 0.5;
+    } else if (this.y < -this.size * 0.5) {
+      this.y = height + this.size * 0.5;
     }
   }
 }
-
-
