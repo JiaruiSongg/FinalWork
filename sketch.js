@@ -92,6 +92,9 @@ function startDarkModeAnimation() {
     if (progress === 1 && !moonElement) {
       moonElement = new BauhausCircle(600, 100, 60, color(255)); // Moon appears
       shapes.push(moonElement);
+      
+      // Apply the layered dark mode to keep the Bauhaus style after the moon appears
+      applyLayeredDarkMode();
     }
 
     // Gradually fade out clouds
@@ -111,6 +114,25 @@ function startDarkModeAnimation() {
 
   animate(); // Start the animation
 }
+
+// Function to apply a layered dark mode effect after the moon appears
+function applyLayeredDarkMode() {
+  // Adjust sky gradient after dark mode
+  for (let y = 0; y < height / 2; y += 10) {
+    let skyColor = lerpColor(color(0, 0, 50), color(25, 60, 150), y / (height / 2));
+    shapes[y / 10].color = skyColor; // Update sky layers to maintain Bauhaus style
+  }
+
+  // Adjust water gradient after dark mode
+  for (let y = height / 2; y < height; y += 10) {
+    let waterColor = lerpColor(color(30, 30, 80), color(0, 100, 150), (y - height / 2) / (height / 2));
+    shapes[y / 10].color = waterColor; // Update water layers to maintain Bauhaus style
+  }
+
+  draw(); // Redraw the canvas to reflect the new changes
+}
+
+// Base classes for different Bauhaus-style shapes
 
 // Base class representing a generic Bauhaus shape
 class BauhausShape {
